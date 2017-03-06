@@ -59,17 +59,9 @@ var User = bookshelf.Model.extend({
 
 var DrupalUser = bookshelf.Model.extend({
     tableName: constants.DRUPAL_USERS_TABLE_NAME,
-
-//    validPassword: function(password) {
-//        var child_process = require('child_process');
-//        var res = child_process.execFileSync('python', ["libs/drupal_7_pw.py", this.attributes.pass], {'input': password+"\n"});
-//        msg = res.toString('ascii');
-//        return (msg.indexOf('Yey! win') > -1);
     validPassword: function(password){
         var child_process = require('child_process');
-        return res = drupalHash.checkPassword(this.attributes.pass, hash);
-        
-    }
+        return res = drupalHash.checkPassword(this.attributes.pass, hash);       
     }
 });
 
