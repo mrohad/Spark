@@ -3,9 +3,8 @@ var bcrypt = require('bcrypt-nodejs');
 var randtoken = require('rand-token');
 var NpoMember = require('./npo_member').NpoMember;
 var constants = require('./constants.js');
+var drupalHash = require('./drupal-hash');
 var userRole = require('../libs/user_role');
-var drupalHash = require('drupal-hash');
-
 
 var User = bookshelf.Model.extend({
     tableName: constants.USERS_TABLE_NAME,
@@ -59,15 +58,10 @@ var User = bookshelf.Model.extend({
 
 var DrupalUser = bookshelf.Model.extend({
     tableName: constants.DRUPAL_USERS_TABLE_NAME,
-    validPassword: function(password){
-//        var child_process = require('child_process');
+    validPassword: function(password) {
         return drupalHash.checkPassword(this.attributes.pass, hash);       
     }
 });
-
-
-
-
 
 // Create the model and expose it
 module.exports = {
