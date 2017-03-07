@@ -3,7 +3,7 @@ var bcrypt = require('bcrypt-nodejs');
 var randtoken = require('rand-token');
 var NpoMember = require('./npo_member').NpoMember;
 var constants = require('./constants.js');
-var drupalHash = require('./drupal-hash');
+var drupalHash = require('drupal-hash');
 var userRole = require('../libs/user_role');
 
 var User = bookshelf.Model.extend({
