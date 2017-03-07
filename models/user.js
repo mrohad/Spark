@@ -60,10 +60,14 @@ var User = bookshelf.Model.extend({
 var DrupalUser = bookshelf.Model.extend({
     tableName: constants.DRUPAL_USERS_TABLE_NAME,
     validPassword: function(password){
-        var child_process = require('child_process');
+//        var child_process = require('child_process');
         return drupalHash.checkPassword(this.attributes.pass, hash);       
     }
 });
+
+
+
+
 
 // Create the model and expose it
 module.exports = {
