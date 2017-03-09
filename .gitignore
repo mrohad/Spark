@@ -65,3 +65,6 @@ jspm_packages
 # dotenv file (containing all of our secrets!!)
 .env
 deployment.key
+
+# react bundling file
+/dist
