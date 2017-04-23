@@ -16,7 +16,7 @@ var __render_camp = function (camp, req, res) {
     }).fetch({}).then((camp) => {
         camp.getCampUsers((users) => {
             camp.init_t(req.t);
-            // if user is camp_member, we can show all 
+            // if user is camp_member, we can show all
             // let _user = camp.isUserCampMember(req.user.id);
             let data = {
                 user: req.user, //
@@ -247,6 +247,11 @@ module.exports = function (app, passport) {
                 if (req.user.isManagerOfCamp(req.params.id) || req.user.isAdmin) {
                     var camp_data = camp.toJSON();
                     camp_data.type = (camp_data.type === null) ? '' : camp_data.type;
+                    if(camp_data.addinfo_json===null){
+                        camp_data.addinfo_json= {early_arrival_quota:''};
+                    }else{
+                        camp_data.addinfo_json= JSON.parse(camp_data.addinfo_json);
+                    }
                     res.render('pages/camps/edit', {
                         user: req.user,
                         breadcrumbs: req.breadcrumbs(),

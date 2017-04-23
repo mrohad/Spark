@@ -200,7 +200,7 @@ module.exports = (app, passport) => {
             });
         });
 
-    var __camps_create_camp_obj = function (req, isNew) {
+    var __camps_create_camp_obj = function (req, isNew,curCamp) {
         var data = {
             __prototype: constants.prototype_camps.THEME_CAMP.id,
             event_id: constants.CURRENT_EVENT_ID,
@@ -232,6 +232,19 @@ module.exports = (app, passport) => {
         }
         if (isNew) {
             data.created_at = (new Date()).toISOString().substring(0, 19).replace('T', ' ');
+        }
+        if (req.user.isAdmin) {
+            var campAddInfoJson = {early_arrival_quota:''};
+            if(req.body.camp_early_arrival_quota){
+                if(curCamp){
+                    campAddInfoJson = JSON.parse(curCamp.attributes.addinfo_json);
+                    if(campAddInfoJson ==='' || campAddInfoJson === null){
+                        campAddInfoJson = {early_arrival_quota:''};
+                    }
+                }
+                campAddInfoJson.early_arrival_quota = req.body.camp_early_arrival_quota;
+            }
+            data.addinfo_json =JSON.stringify(campAddInfoJson);
         }
         if (isNew || req.user.isAdmin) {
             __update_prop('camp_name_en');
@@ -279,8 +292,9 @@ module.exports = (app, passport) => {
     app.put('/camps/:id/edit',
         [userRole.isLoggedIn(), userRole.isAllowEditCamp()],
         (req, res) => {
+
             Camp.forge({ id: req.params.id }).fetch().then((camp) => {
-                camp.save(__camps_create_camp_obj(req, false)).then(() => {
+                camp.save(__camps_create_camp_obj(req, false,camp)).then(() => {
                     res.json({ error: false, status: 'Camp updated' });
                     // });
                 }).catch((err) => {
