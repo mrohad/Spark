@@ -14,7 +14,7 @@ block content
                         a.Btn.Btn__green.card-switcher#4(href='javascript:;', role='button')
                             span.glyphicon.glyphicon-plus(aria-hidden="true")
                             span=t('camps:admin_index.new')
-            
+
         .cards--wrapper.card__shad
             //- Card 1
             .card.card-first.card__padding--even.col-xs-12.table-responsive(ng-controller="manageCampsController")
@@ -28,7 +28,7 @@ block content
                             th(ng-click='changeOrderBy("id")') #
                             th.camp_name_en(ng-click='changeOrderBy("name")')=t('camps:stats.name_en')
                             th.contact_person(ng-click='changeOrderBy("contact_person")')=t('camps:stats.contact_person')
-                            th.status(ng-click='changeOrderBy("status")')=t('camps:stats.status')
+                            //th.status(ng-click='changeOrderBy("status")')=t('camps:stats.status') //issue#343#2
                             th.hidden-xs(ng-click='changeOrderBy("last_update")')=t('camps:stats.last_update')
                             th.hidden-xs(ng-click='changeOrderBy("created_at")')=t('camps:stats.created_at')
                             th.published(ng-click='changeOrderBy("published")')=t('camps:stats.published')
@@ -38,11 +38,11 @@ block content
                     tbody
                         tr(ng-repeat="camp in camps | filter: searchCamp | orderBy: orderCamps")
                             td {{ camp.id }}
-                            td 
-                                a(ng-href=`/${language}/camps/{{camp.id}}`) 
+                            td
+                                a(ng-href=`/${language}/camps/{{camp.id}}`)
                                     {{ camp.camp_name_en }}
                             td {{ camp.contact_person_name }}
-                            td {{ camp.status }}
+                            //td {{ camp.status }}
                             td {{ camp.updated_at.split('GMT')[0] }}
                             td {{ camp.created_at.split('GMT')[0] }}
                             td {{ camp.web_public }}
@@ -77,11 +77,11 @@ block content
                     .col-xs-12.col-md-9
                         input.form-control(id='camps_members_search_member', ng-model="searchMembers", type="text", placeholder="#{t('camps:members.search')}")
                 include partials/members_table
-                
+
             //- Card 3
             .card.card-third.card__padding--even.card-hide.col-xs-12.table-responsive
                 h4=t('camps:admin_index.docs_table')
-                    
+
             //- Card 4
             .choose_name.card.card-forth.card__padding--even.card-hide.col-xs-12
                 h2=t('camps:new.header_title')
