@@ -7,7 +7,7 @@ const knex = require('../libs/db').knex;
 const userRole = require('../libs/user_role');
 var mail = require('../libs/mail'),
     mailConfig = config.get('mail');
-var _lodash = require('lodash');
+
 var APPROVAL_ENUM = ['approved', 'pending', 'approved_mgr'];
 var emailDeliver = (recipient, subject, template, props) => {
     /**
