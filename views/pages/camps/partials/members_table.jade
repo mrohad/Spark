@@ -21,7 +21,7 @@ table.table.table-striped.table-hover
             td {{(member.current_event_id===constants.CURRENT_EVENT_ID?(member.current_status==='in event'?'In':'Out'):'Out')}}
             //- td {{member.earlyArrival ? 'yes':'no'}}
             td
-                a.cursor-p(ng-click='updateUser(member.name, member.user_id, "סדeject")', ng-if="member.can_reject")
+                a.cursor-p(ng-click='updateUser(member.name, member.user_id, "reject")', ng-if="member.can_reject")
                     button.btn.btn-xs
                         span(class='glyphicon glyphicon-remove')
                         =t('camps:members.reject')
