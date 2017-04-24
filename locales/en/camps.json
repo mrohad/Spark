@@ -162,7 +162,8 @@
           "status_rejected": "Camp manager did not approve request",
           "status_pending_mgr": "Waiting for member acceptance",
           "status_approved_mgr": "Approved as Manager",
-          "status_supplier": "Supplier"
+          "status_supplier": "Supplier",
+          "current_in_event":"Current position"
         },
         "camps": {
             "title": "Camp",

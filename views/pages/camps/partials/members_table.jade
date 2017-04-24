@@ -7,6 +7,7 @@ table.table.table-striped.table-hover
         th(ng-click='changeOrderBy("phone")')=t('camps:members.phone')
         th(ng-click='changeOrderBy("status")')=t('camps:members.status')
         th(ng-click='changeOrderBy("hasTicket")')=t('camps:members.ticket_count')
+        th(ng-click='changeOrderBy("status")')=t('camps:members.current_in_event')
         //- th(ng-click='changeOrderBy("earlyArrival")')=t('camps:members.early_arrival')
         th()=t('camps:members.actions')
     tbody
@@ -17,9 +18,10 @@ table.table.table-striped.table-hover
             td {{member.cell_phone}}
             td {{member.member_status_i18n}}
             td {{member.current_event_id_ticket_count}}
+            td {{(member.current_event_id===constants.CURRENT_EVENT_ID?(member.current_status==='in event'?'In':'Out'):'Out')}}
             //- td {{member.earlyArrival ? 'yes':'no'}}
             td
-                a.cursor-p(ng-click='updateUser(member.name, member.user_id, "reject")', ng-if="member.can_reject")
+                a.cursor-p(ng-click='updateUser(member.name, member.user_id, "סדeject")', ng-if="member.can_reject")
                     button.btn.btn-xs
                         span(class='glyphicon glyphicon-remove')
                         =t('camps:members.reject')
