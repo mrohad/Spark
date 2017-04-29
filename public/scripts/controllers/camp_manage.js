@@ -25,12 +25,26 @@ app.controller("manageCampsController", function ($scope, $http, $filter) {
     }
 });
 
+function validateEmail(email) {
+    var re = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+    return re.test(email);
+}
+
 app.controller("membersController", ($scope, $http) => {
+    $scope.foundUserByEmail='';
     $http.get('/camps_all').then((res) => {
         console.log(res.data);
         $scope.camps = res.data.camps;
     });
-
+    $scope.changed = function(){
+        if(validateEmail($scope.searchEmail)) {
+            $http.get('/userswithcamp/'+$scope.searchEmail).success((user) => {
+                $scope.foundUserByEmail = "Camp: "+ user.camp.camp_name_en;
+            }).error(function () {
+                $scope.foundUserByEmail = 'Email - '+ $scope.searchEmail+ ' does not exist';
+            });
+        }
+    }
     $scope.getMembers = (camp_id) => {
         if (typeof camp_id !== 'undefined') {
             $scope.current_camp_id = camp_id;
@@ -51,7 +65,7 @@ app.controller("membersController", ($scope, $http) => {
         }
         angular_updateUser($http, $scope, action_type, user_rec);
     }
-    
+
     $scope.changeOrderBy = (orderByValue) => {
         $scope.orderMembers = orderByValue;
     }

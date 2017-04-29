@@ -188,7 +188,7 @@ module.exports = (app, passport) => {
         (req, res) => {
             User.forge({ email: req.params.email }).fetch().then((user) => {
                 if (user !== null) {
-                    res.status(200).end()
+                    res.status(200).end(); //TODO: looks like it does not send nothing
                 } else {
                     res.status(404).end()
                 }
@@ -201,7 +201,31 @@ module.exports = (app, passport) => {
                 });
             });
         });
-
+    /**
+     * API: (GET) get user by email
+     * request => /users/:email
+     */
+    app.get('/userswithcamp/:email/',
+        [userRole.isAdmin()],
+        (req, res) => {
+            User.forge({ email: req.params.email }).fetch().then((user) => {
+                if (user !== null) {
+                    user.getUserCamps(function(camps){
+                        //user.attributes.camps = camps;
+                        res.status(200).json(user.attributes);
+                    });
+                } else {
+                    res.status(404).end()
+                }
+            }).catch((err) => {
+                res.status(500).json({
+                    error: true,
+                    data: {
+                        message: err.message
+                    }
+                });
+            });
+        });
     var __camps_create_camp_obj = function (req, isNew,curCamp) {
         var data = {
             __prototype: constants.prototype_camps.THEME_CAMP.id,
@@ -456,7 +480,35 @@ module.exports = (app, passport) => {
             res.status(200).json({ users: [req.user.toJSON()] })
         }
     });
-
+    // /**
+    //  * API: (GET) return user by email
+    //  *  works only for Admin
+    //  * request => /user/:email
+    //  */
+    // app.get('/user/:email/', (req, res) => {
+    //     console.log('user/email',req.params.email);
+    //     if (req.user.isAdmin) {
+    //         User.where('email',"=",req.params.email).fetchAll().then((users) => {
+    //             // User.forge({ validated: true }).fetchAll().then((users) => {
+    //             console.log(users);
+    //             var _users = users.toJSON();
+    //             for (var i in _users) {
+    //                 common.__updateUserRec(_users[i]);
+    //                 // console.log(_users[i]);
+    //             }
+    //             res.status(200).json({ users: _users })
+    //         }).catch((err) => {
+    //             res.status(500).json({
+    //                 error: true,
+    //                 data: {
+    //                     message: err.message
+    //                 }
+    //             });
+    //         });
+    //     } else {
+    //         res.status(500).end();
+    //     }
+    // });
     /**
      * API: (GET) return camps list
      * request => /camps
