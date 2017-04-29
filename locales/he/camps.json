@@ -44,7 +44,6 @@
             "new": "צור מחנה חדש",
             "all_camps_table": "מחנות",
             "all_members_table": "חברי מחנות",
-            "search_member_camp":"חפש חבר מחנה לפי אימייל:",
             "total_approved_members": "סה\"כ חברי מחנה",
             "total_camp_tickets": "סה\"כ כרטיסים",
             "docs_table": "מסמכים וקבצים"
@@ -137,6 +136,7 @@
             "published": "מפורסם",
             "facebook_page_url": "דף פייסבוק",
             "remove": "הסרה",
+            "edit": "עריכה",
             "search": "חפש מחנה"
         },
         "members": {
@@ -155,6 +155,7 @@
           "reject": "דחה משתמש",
           "approve": "אשר משתמש",
           "approve_as_manager": "אשר משתמש כמנהל",
+          "remove_manager": "בטל כמנהל מחנה",
           "remove": "הסר משתמש",
           "choose_camp": "בחר או חפש מחנה",
           "status_pending": "ממתין לאישור מנהלת המחנה",
@@ -163,7 +164,9 @@
           "status_pending_mgr": "ממתין לאישור החברה המצטרפת",
           "status_approved_mgr": "חברת מחנה מאושרת",
           "status_supplier": "מאושר כספק",
-          "current_in_event":"מצב נוכחי"
+          "current_in_event":"מצב נוכחי",
+          "status_approved_mgr": "מנהלת מחנה מאושרת",
+          "status_supplier": "מאושר כספק"
         },
         "camps": {
             "title": "מחנה",

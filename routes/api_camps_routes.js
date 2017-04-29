@@ -52,7 +52,11 @@ var __camps_update_status = (camp_id, user_id, action, camp_mgr, res) => {
                     save_method.method = 'insert';
                 }
             } else if (camp.isCampManager(camp_mgr_id) || isAdmin) {
-                if (user && action === "approve" && user.can_approve) {
+                if (user && action === "remove_mgr" && user.member_status === 'approved_mgr' && (camp_mgr_id === camp.attributes.main_contact || isAdmin)) {
+                    new_status = 'approved';
+                } else if (user && action === "approve_mgr" && user.member_status === 'approved' && (camp_mgr_id === camp.attributes.main_contact || isAdmin)) {
+                    new_status = 'approved_mgr';
+                } else if (user && action === "approve" && user.can_approve) {
                     mail_delivery.to_mail = user.email;
                     mail_delivery.subject = 'Spark: you have been approved!';
                     mail_delivery.template = 'emails/camps/member_approved';
@@ -123,12 +127,13 @@ var __camps_update_status = (camp_id, user_id, action, camp_mgr, res) => {
                 var _after_update = () => {
                     console.log(action + " from camp " + data.camp_id + " of user " + data.user_id + " / status: " + data.status);
                     if (mail_delivery.template !== '') {
-                        // let props={};
-                        if (mail_delivery.to_mail !== '') {
-                            emailDeliver(mail_delivery.to_mail, mail_delivery.subject, mail_delivery.template, { user: user, camp: camp.toJSON(), camp_manager: camp_manager }); // notify the user
+                        if (user) {
+                            let email = mail_delivery.to_mail !== '' ? mail_delivery.to_mail : user.email;
+                            emailDeliver(email, mail_delivery.subject, mail_delivery.template, { user: user, camp: camp.toJSON(), camp_manager: camp_manager }); // notify the user
                         } else {
                             User.forge({ user_id: user_id }).fetch().then((user) => {
-                                emailDeliver(user.attributes.email, mail_delivery.subject, mail_delivery.template, { user: user.toJSON(), camp: camp.toJSON(), camp_manager: camp_manager }); // notify the user
+                                let email = mail_delivery.to_mail !== '' ? mail_delivery.to_mail : user.attributes.email;
+                                emailDeliver(email, mail_delivery.subject, mail_delivery.template, { user: user.toJSON(), camp: camp.toJSON(), camp_manager: camp_manager }); // notify the user
                             });
                         }
                     }
@@ -161,7 +166,7 @@ module.exports = (app, passport) => {
      * request => /users/:id
      */
     app.get('/users/:id',
-        [userRole.isLoggedIn(), userRole.isAllowToViewUser()],
+        [userRole.isLoggedIn(), userRole.isAllowedToViewUser()],
         (req, res) => {
             User.forge({ user_id: req.params.id }).fetch({ columns: '*' }).then((user) => {
                 if (user !== null) {
@@ -234,7 +239,7 @@ module.exports = (app, passport) => {
             updated_at: (new Date()).toISOString().substring(0, 19).replace('T', ' '),
             camp_desc_he: req.body.camp_desc_he,
             camp_desc_en: req.body.camp_desc_en,
-            status: req.body.status,
+            // status: req.body.camp_status,
             type: req.body.type,
             facebook_page_url: req.body.facebook_page_url,
             contact_person_name: req.body.contact_person_name,
@@ -243,7 +248,7 @@ module.exports = (app, passport) => {
             accept_families: req.body.accept_families,
             camp_activity_time: req.body.camp_activity_time,
             child_friendly: req.body.child_friendly,
-            noise_level: req.body.noise_level,
+            // noise_level: req.body.noise_level,
             support_art: req.body.support_art,
         }
         var __update_prop_foreign = function (propName) {
@@ -251,9 +256,13 @@ module.exports = (app, passport) => {
                 data[propName] = req.body[propName];
             }
         }
-        var __update_prop = function (propName) {
+        var __update_prop = function (propName, options) {
             if (req.body[propName] !== undefined) {
-                data[propName] = req.body[propName];
+                let value = req.body[propName];
+                if (!options || (options instanceof Array && options.indexOf(value) > -1)) {
+                    data[propName] = value;
+                }
+                return value;
             }
         }
         if (isNew) {
@@ -276,12 +285,16 @@ module.exports = (app, passport) => {
             __update_prop('camp_name_en');
             __update_prop('camp_name_he');
         }
+        __update_prop('noise_level', constants.CAMP_NOISE_LEVELS);
+        // if (req.body.camp_status)
         __update_prop_foreign('main_contact_person_id');
         __update_prop_foreign('main_contact');
         __update_prop_foreign('moop_contact');
         __update_prop_foreign('safety_contact');
 
+        let camp_statuses = ['open', 'closed'];
         if (req.user.isAdmin) {
+            camp_statuses = constants.CAMP_STATUSES;
             __update_prop('public_activity_area_sqm');
             __update_prop('public_activity_area_desc');
             __update_prop('location_comments');
@@ -289,7 +302,11 @@ module.exports = (app, passport) => {
             __update_prop('camp_location_street_time');
             __update_prop('camp_location_area');
         }
-        // console.log(data);
+        if (camp_statuses.indexOf(req.body.camp_status) > -1) {
+            data.status = req.body.camp_status;
+        }
+
+        console.log(data);
         return data;
     }
     /**
@@ -310,36 +327,40 @@ module.exports = (app, passport) => {
                 });
             });
         });
-
     /**
        * API: (PUT) edit camp
        * request => /camps/1/edit
        */
-    app.put('/camps/:id/edit',
-        [userRole.isLoggedIn(), userRole.isAllowEditCamp()],
-        (req, res) => {
-
-            Camp.forge({ id: req.params.id }).fetch().then((camp) => {
-                camp.save(__camps_create_camp_obj(req, false,camp)).then(() => {
-                    res.json({ error: false, status: 'Camp updated' });
-                    // });
-                }).catch((err) => {
-                    res.status(500).json({
-                        error: true,
-                        data: {
-                            message: err.message
-                        }
+    app.put('/camps/:id/edit', userRole.isLoggedIn(), (req, res) => {
+        Camp.forge({ id: req.params.id }).fetch().then((camp) => {
+            camp.getCampUsers((users) => {
+                if (camp.isCampManager(req.user.attributes.user_id) || req.user.isAdmin) {
+                    Camp.forge({ id: req.params.id }).fetch().then((camp) => {
+                        camp.save(__camps_create_camp_obj(req, false)).then(() => {
+                            res.json({ error: false, status: 'Camp updated' });
+                            // });
+                        }).catch((err) => {
+                            res.status(500).json({
+                                error: true,
+                                data: {
+                                    message: err.message
+                                }
+                            });
+                        });
                     });
-                });
-            }).catch((err) => {
-                res.status(500).json({
-                    error: true,
-                    data: {
-                        message: err.message
-                    }
-                });
+                } else {
+                    res.status(401).json({ error: true, status: 'Cannot update camp' });
+                }
+            });
+        }).catch((err) => {
+            res.status(500).json({
+                error: true,
+                data: {
+                    message: err.message
+                }
             });
         });
+    });
 
     // PUBLISH
     app.put('/camps/:id/publish',
@@ -398,7 +419,7 @@ module.exports = (app, passport) => {
         var user_id = req.params.user_id;
         var camp_id = req.params.camp_id;
         var action = req.params.action;
-        var actions = ['approve', 'remove', 'revive', 'reject'];
+        var actions = ['approve', 'remove', 'revive', 'reject', 'approve_mgr', 'remove_mgr'];
         if (actions.indexOf(action) > -1) {
             __camps_update_status(camp_id, user_id, action, req.user, res);
         } else {
@@ -480,35 +501,7 @@ module.exports = (app, passport) => {
             res.status(200).json({ users: [req.user.toJSON()] })
         }
     });
-    // /**
-    //  * API: (GET) return user by email
-    //  *  works only for Admin
-    //  * request => /user/:email
-    //  */
-    // app.get('/user/:email/', (req, res) => {
-    //     console.log('user/email',req.params.email);
-    //     if (req.user.isAdmin) {
-    //         User.where('email',"=",req.params.email).fetchAll().then((users) => {
-    //             // User.forge({ validated: true }).fetchAll().then((users) => {
-    //             console.log(users);
-    //             var _users = users.toJSON();
-    //             for (var i in _users) {
-    //                 common.__updateUserRec(_users[i]);
-    //                 // console.log(_users[i]);
-    //             }
-    //             res.status(200).json({ users: _users })
-    //         }).catch((err) => {
-    //             res.status(500).json({
-    //                 error: true,
-    //                 data: {
-    //                     message: err.message
-    //                 }
-    //             });
-    //         });
-    //     } else {
-    //         res.status(500).end();
-    //     }
-    // });
+
     /**
      * API: (GET) return camps list
      * request => /camps
@@ -557,20 +550,28 @@ module.exports = (app, passport) => {
      * request => /camps_open
      */
     app.get('/camps_open', userRole.isLoggedIn(), (req, res) => {
-        Camp.where('status', '=', 'open', 'AND', 'event_id', '=', constants.CURRENT_EVENT_ID, 'AND', '__prototype', '=', constants.prototype_camps.THEME_CAMP.id).fetchAll().then((camp) => {
-            if (camp !== null) {
-                res.status(200).json({ camps: camp.toJSON() })
-            } else {
-                res.status(404).json({ data: { message: 'Not found' } })
-            }
-        }).catch((err) => {
-            res.status(500).json({
-                error: true,
-                data: {
-                    message: err.message
+        let allowed_status = ['open', 'closed'];
+        let web_published = [true, false];
+        Camp.query((query) => {
+            query
+                .where('event_id', '=', constants.CURRENT_EVENT_ID, 'AND', '__prototype', '=', constants.prototype_camps.THEME_CAMP.id)
+                .whereIn('status', allowed_status)
+                .whereIn('web_published', web_published);
+        })
+            .fetchAll().then((camp) => {
+                if (camp !== null) {
+                    res.status(200).json({ camps: camp.toJSON() })
+                } else {
+                    res.status(404).json({ data: { message: 'Not found' } })
                 }
+            }).catch((err) => {
+                res.status(500).json({
+                    error: true,
+                    data: {
+                        message: err.message
+                    }
+                });
             });
-        });
     });
 
     /**
@@ -740,7 +741,7 @@ module.exports = (app, passport) => {
                 } else {
                     res.status(500).json({ error: true, data: { message: 'Permission denied' } });
                 }
-            }, req.t);
+            }, req);
         }).catch((e) => {
             res.status(500).json({
                 error: true,

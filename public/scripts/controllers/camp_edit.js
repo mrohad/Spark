@@ -42,7 +42,7 @@ var angular_updateUser = function ($http, $scope, action_type, user_rec) {
             approve: 'לאשר את',
             delete: 'למחוק את',
             reject: 'לדחות את',
-            approve_mgr: 'לשלוח בקשה ל-',
+            approve_mgr: 'להפוך למנהל את',
             remove: 'להסיר את'
         };
         tpl = {
@@ -57,7 +57,7 @@ var angular_updateUser = function ($http, $scope, action_type, user_rec) {
             approve: 'Approve',
             delete: 'Delete',
             reject: 'Reject',
-            approve_mgr: 'Send Approval to',
+            approve_mgr: 'Set Manager',
             remove: 'Remove'
         };
         tpl = {
@@ -96,12 +96,26 @@ app.controller("campEditController", ($scope, $http, $filter) => {
         lang = 'he';
     }
     if (lang === "he") {
-        $scope.status_options = ['מחנה פתוח למצטרפים חדשים', 'סגור למצטרפים חדשים'];
-        $scope.noise_level_options = ['שקט', 'בינוני', 'רועש', 'מאוד רועש'];
+        $scope.status_options = [
+           {id:'open',value:'מחנה פתוח למצטרפים חדשים'}, 
+           {id:'closed',value:'סגור למצטרפים חדשים'}];
+        $scope.noise_level_options = [
+            {id:'quiet',value:'שקט'},
+            {id:'medium',value:'בינוני'},
+            {id:'noisy',value:'רועש'},
+            {id:'very noisy',value:'מאוד רועש'} ];
     } else {
         $scope.status_options = ['Opened to new member', 'Closed to new members'];
-        $scope.noise_level_options = ['Quiet', 'Medium', 'Noisy', 'Very Noisy'];
+        $scope.status_options = [
+           {id:'open',value:'Opened to new member'}, 
+           {id:'closed',value:'Closed to new members'}];
+        $scope.noise_level_options = [
+            {id:'quiet',value:'Quiet'},
+            {id:'medium',value:'Medium'},
+            {id:'noisy',value:'Noisy'},
+            {id:'very noisy',value:'Very Noisy'} ];
     }
+
     $scope.getMembers = () => {
         angular_getMembers($http, $scope, camp_id);
         setTimeout(() => {
